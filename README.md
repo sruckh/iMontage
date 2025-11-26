@@ -14,7 +14,7 @@
 
 
 <p align="center">
-  <img src="assets/demo/teaser.png" alt="iMontage Teaser" width="30%">
+  <img src="assets/demo/teaser.png" alt="iMontage Teaser" width="85%">
 </p>
 
 What if an image model could turn multi images into a coherent, dynamic visual universe? 🤯 iMontage brings video-like motion priors to image generation, enabling rich transitions and consistent multi-image outputs—all from your own inputs.
@@ -195,3 +195,11 @@ These contributions have greatly influenced our research and helped shape the de
 
 If you find **iMontage** useful for your research or applications, please consider starring ⭐ the repo and citing our paper:
 
+```
+@article{fu2025iMontage,
+  title={iMontage: Unified, Versatile, Highly Dynamic Many-to-many Image Generation}, 
+  author={Zhoujie Fu and Xianfang Zeng and Jinghong Lan and Xinyao Liao and Cheng Chen and Junyi Chen and Jiacheng Wei and Wei Cheng and Shiyu Liu and Yunuo Chen and Gang Yu and Guosheng Lin},
+  journal={arXiv preprint arXiv:2511.20635},
+  year={2025},   
+}
+```
