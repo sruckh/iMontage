@@ -13,6 +13,10 @@
 </p>
 
 
+<p align="center">
+  <img src="assets/demo/teaser.png" alt="iMontage Teaser" width="30%">
+</p>
+
 What if an image model could turn multi images into a coherent, dynamic visual universe? 🤯 iMontage brings video-like motion priors to image generation, enabling rich transitions and consistent multi-image outputs—all from your own inputs.
 Try it out below and explore your imagination!
 
