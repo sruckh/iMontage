@@ -181,7 +181,7 @@ In particular, we acknowledge the following projects for their models, datasets,
 
 - **HunyuanVideo-T2V**, **HunyuanVideo-I2V** – Provided base generative model designs and code. 
 - **FastVideo** – Contributed key components and open-source utilities that supported our development.
-- **DeepVerse** - Inspire the design of website's design.
+
 
 These contributions have greatly influenced our research and helped shape the design of **iMontage**.
 
