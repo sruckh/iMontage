@@ -14,7 +14,9 @@ TORCH_VERSION="${TORCH_VERSION:-2.7.0}"
 TORCHVISION_VERSION="${TORCHVISION_VERSION:-0.22.0}"
 TORCHAUDIO_VERSION="${TORCHAUDIO_VERSION:-2.7.0}"
 TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu128}"
-FLASH_ATTN_VERSION="${FLASH_ATTN_VERSION:-3.0.0.post1}"
+FLASH_ATTN_VERSION="${FLASH_ATTN_VERSION:-2.8.3}"
+# Optional direct wheel URL to avoid index misses; default matches torch 2.7.0/cu12.
+FLASH_ATTN_WHL="${FLASH_ATTN_WHL:-https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl}"
 INSTALL_FLASH_ATTN="${INSTALL_FLASH_ATTN:-1}" # flash-attn is required; set to 0 only if you know you don't need it
 
 CKPTS_ROOT="${CKPTS_ROOT:-${REPO_DIR}/ckpts}"
@@ -57,10 +59,18 @@ maybe_install_deps() {
         --index-url "${TORCH_INDEX_URL}"
 
     if [[ "${INSTALL_FLASH_ATTN}" == "1" ]]; then
-        log "Installing flash-attn ${FLASH_ATTN_VERSION} (required)."
-        if ! "${PYTHON_BIN}" -m pip install "flash-attn==${FLASH_ATTN_VERSION}" --no-build-isolation --break-system-packages; then
-            log "ERROR: flash-attn install failed. This image uses the CUDA devel base for build tooling; if it still fails, check CUDA compatibility or adjust FLASH_ATTN_VERSION."
-            exit 1
+        if [[ -n "${FLASH_ATTN_WHL}" ]]; then
+            log "Installing flash-attn from wheel (required): ${FLASH_ATTN_WHL}"
+            if ! "${PYTHON_BIN}" -m pip install "${FLASH_ATTN_WHL}" --no-build-isolation --break-system-packages; then
+                log "ERROR: flash-attn install failed from wheel ${FLASH_ATTN_WHL}"
+                exit 1
+            fi
+        else
+            log "Installing flash-attn ${FLASH_ATTN_VERSION} (required)."
+            if ! "${PYTHON_BIN}" -m pip install "flash-attn==${FLASH_ATTN_VERSION}" --no-build-isolation --break-system-packages; then
+                log "ERROR: flash-attn install failed for ${FLASH_ATTN_VERSION}. Set FLASH_ATTN_VERSION/FLASH_ATTN_WHL to a compatible release for your torch/CUDA."
+                exit 1
+            fi
         fi
     else
         log "WARNING: Skipping flash-attn install (INSTALL_FLASH_ATTN=0) even though it is required by README."
