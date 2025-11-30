@@ -70,7 +70,7 @@ def _write_prompt_json(
 def _run_inference(
     task_type: str,
     prompt_text: str,
-    images: List[gr.File],
+    images: List[str],
     height: int,
     width: int,
     output_num: int,
@@ -99,8 +99,9 @@ def _run_inference(
     tmp_dir = Path(tempfile.mkdtemp())
     saved_images: List[Path] = []
     for uploaded in images:
-        dest = tmp_dir / Path(uploaded.name).name
-        shutil.copy(uploaded.name, dest)
+        src = Path(uploaded)
+        dest = tmp_dir / src.name
+        shutil.copy(src, dest)
         saved_images.append(dest)
 
     prompt_json = _write_prompt_json(task_type, prompt_text, saved_images, height, width, output_num)
@@ -197,7 +198,7 @@ def build_demo():
             lines=3,
         )
 
-        images = gr.Files(label="Reference images (1-4)", file_types=["image"], type="file")
+        images = gr.Files(label="Reference images (1-4)", file_types=["image"], type="filepath")
 
         with gr.Row():
             height = gr.Slider(label="Height", minimum=256, maximum=1280, value=1024, step=16)
