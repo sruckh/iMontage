@@ -29,19 +29,30 @@ def load_text_encoder(
         text_encoder = CLIPTextModel.from_pretrained(text_encoder_path)
         text_encoder.final_layer_norm = text_encoder.text_model.final_layer_norm
     elif text_encoder_type == "llm":
-        from transformers import AutoModel, AutoModelForCausalLM
+        from transformers import AutoModel, AutoModelForCausalLM, LlavaForConditionalGeneration
 
         # LLaVA config is not registered in standard Auto mappings; try plain AutoModel with
-        # trust_remote_code first, fall back to AutoModelForCausalLM.
+        # trust_remote_code first, fall back to AutoModelForCausalLM, then LlavaForConditionalGeneration.
         try:
             text_encoder = AutoModel.from_pretrained(
                 text_encoder_path, low_cpu_mem_usage=True, trust_remote_code=True
             )
         except Exception:
-            text_encoder = AutoModelForCausalLM.from_pretrained(
-                text_encoder_path, low_cpu_mem_usage=True, trust_remote_code=True
-            )
-        text_encoder.final_layer_norm = text_encoder.norm
+            try:
+                text_encoder = AutoModelForCausalLM.from_pretrained(
+                    text_encoder_path, low_cpu_mem_usage=True, trust_remote_code=True
+                )
+            except Exception:
+                text_encoder = LlavaForConditionalGeneration.from_pretrained(
+                    text_encoder_path, low_cpu_mem_usage=True, trust_remote_code=True
+                ).language_model
+
+        if hasattr(text_encoder, "norm"):
+            text_encoder.final_layer_norm = text_encoder.norm
+        elif hasattr(text_encoder, "model") and hasattr(text_encoder.model, "norm"):
+            text_encoder.final_layer_norm = text_encoder.model.norm
+        else:
+            text_encoder.final_layer_norm = None
     else:
         raise ValueError(f"Unsupported text encoder type: {text_encoder_type}")
     # from_pretrained will ensure that the model is in eval mode.
