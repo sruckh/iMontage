@@ -202,13 +202,13 @@ ensure_text_encoder_link() {
         log "Found text encoder at ${target}"
         return
     fi
-    if [[ -d "${TEXT_ENCODER_DIR}" ]]; then
+    if [[ -d "${LLAVA_DIR}" ]]; then
         mkdir -p "$(dirname "${target}")"
-        ln -s "${TEXT_ENCODER_DIR}" "${target}"
-        log "Linked text encoder from ${TEXT_ENCODER_DIR} to ${target}"
+        ln -s "${LLAVA_DIR}" "${target}"
+        log "Linked text encoder from ${LLAVA_DIR} to ${target}"
         return
     fi
-    log "ERROR: text encoder directory not found at ${TEXT_ENCODER_DIR}"
+    log "ERROR: text encoder directory not found at ${LLAVA_DIR}"
     exit 1
 }
 
