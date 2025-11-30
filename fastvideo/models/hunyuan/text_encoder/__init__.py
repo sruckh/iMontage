@@ -29,10 +29,11 @@ def load_text_encoder(
         text_encoder = CLIPTextModel.from_pretrained(text_encoder_path)
         text_encoder.final_layer_norm = text_encoder.text_model.final_layer_norm
     elif text_encoder_type == "llm":
-        # LLaVA text encoder loads as a causal LM; AutoModel does not recognize LlavaConfig
-        # (throws Unrecognized configuration class). Use AutoModelForCausalLM instead.
+        # LLaVA text encoder loads as a causal LM; allow custom config via trust_remote_code.
         from transformers import AutoModelForCausalLM
-        text_encoder = AutoModelForCausalLM.from_pretrained(text_encoder_path, low_cpu_mem_usage=True)
+        text_encoder = AutoModelForCausalLM.from_pretrained(
+            text_encoder_path, low_cpu_mem_usage=True, trust_remote_code=True
+        )
         text_encoder.final_layer_norm = text_encoder.norm
     else:
         raise ValueError(f"Unsupported text encoder type: {text_encoder_type}")
