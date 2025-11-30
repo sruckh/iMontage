@@ -74,7 +74,6 @@ def _run_inference(
     height: int,
     width: int,
     output_num: int,
-    num_frames: int,
     num_inference_steps: int,
     guidance_scale: float,
     embedded_cfg_scale: float,
@@ -86,6 +85,9 @@ def _run_inference(
         seed_val = int(seed) if seed is not None else None
     except Exception:
         seed_val = None
+
+    # Hardcode num_frames to 1 for image generation
+    num_frames = 1
 
     ok, message = _check_required_files()
     if not ok:
@@ -190,7 +192,6 @@ def build_demo():
                 value="image_editing",
             )
             output_num = gr.Slider(label="Outputs per prompt", minimum=1, maximum=4, value=1, step=1)
-            num_frames = gr.Slider(label="Frames", minimum=1, maximum=8, value=1, step=1)
 
         prompt_text = gr.Textbox(
             label="Prompt",
@@ -229,7 +230,6 @@ def build_demo():
                 height,
                 width,
                 output_num,
-                num_frames,
                 num_inference_steps,
                 guidance_scale,
                 embedded_cfg_scale,
