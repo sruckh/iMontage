@@ -90,22 +90,23 @@ maybe_install_deps() {
 }
 
 ensure_hf_cli() {
-    if command -v huggingface-cli >/dev/null 2>&1; then
-        echo "huggingface-cli"
-        return
-    fi
     if command -v hf >/dev/null 2>&1; then
         echo "hf"
         return
     fi
-    log "Installing huggingface_hub[cli] to obtain huggingface-cli"
+    if command -v huggingface-cli >/dev/null 2>&1; then
+        # Prefer hf, but fall back if only huggingface-cli exists
+        echo "huggingface-cli"
+        return
+    fi
+    log "Installing huggingface_hub[cli] to obtain hf"
     "${PYTHON_BIN}" -m pip install --upgrade "huggingface_hub[cli]" --break-system-packages
-    if command -v huggingface-cli >/dev/null 2>&1; then
-        echo "huggingface-cli"
-        return
-    fi
     if command -v hf >/dev/null 2>&1; then
         echo "hf"
+        return
+    fi
+    if command -v huggingface-cli >/dev/null 2>&1; then
+        echo "huggingface-cli"
         return
     fi
     echo ""
@@ -173,6 +174,25 @@ maybe_download_models() {
     fi
     download_if_missing "CLIP text_encoder_2" "openai/clip-vit-large-patch14" "${TEXT_ENCODER_2_DIR}" "${HF_CMD}" "" "${TEXT_ENCODER_2_MARKER}"
     download_if_missing "iMontage weights" "Kr1sJ/iMontage" "${IMONTAGE_DIR}" "${HF_CMD}" "${IMONTAGE_WEIGHT_PATH}" "${IMONTAGE_MARKER}"
+
+    ensure_vae_link
+}
+
+ensure_vae_link() {
+    local target="${REPO_DIR}/data/hunyuan/hunyuan-video-i2v-720p/vae"
+    if [[ -d "${target}" ]]; then
+        log "Found VAE at ${target}"
+        return
+    fi
+    local candidate
+    candidate=$(find "${HYVIDEO_DIR}" -maxdepth 3 -type d -name "vae" | head -n 1 || true)
+    if [[ -z "${candidate}" ]]; then
+        log "ERROR: VAE directory not found under ${HYVIDEO_DIR}"
+        exit 1
+    fi
+    mkdir -p "$(dirname "${target}")"
+    ln -s "${candidate}" "${target}"
+    log "Linked VAE from ${candidate} to ${target}"
 }
 
 maybe_install_deps
