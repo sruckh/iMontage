@@ -247,7 +247,12 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 7860)))
-    parser.add_argument("--share", action="store_true")
+    parser.add_argument(
+        "--share",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable Gradio share link; useful if the RunPod proxy is unreliable. Use --no-share to disable.",
+    )
     return parser.parse_args()
 
 
