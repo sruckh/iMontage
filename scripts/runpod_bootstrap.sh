@@ -176,6 +176,7 @@ maybe_download_models() {
     download_if_missing "iMontage weights" "Kr1sJ/iMontage" "${IMONTAGE_DIR}" "${HF_CMD}" "${IMONTAGE_WEIGHT_PATH}" "${IMONTAGE_MARKER}"
 
     ensure_vae_link
+    ensure_text_encoder_link
 }
 
 ensure_vae_link() {
@@ -193,6 +194,22 @@ ensure_vae_link() {
     mkdir -p "$(dirname "${target}")"
     ln -s "${candidate}" "${target}"
     log "Linked VAE from ${candidate} to ${target}"
+}
+
+ensure_text_encoder_link() {
+    local target="${REPO_DIR}/data/hunyuan/text_encoder"
+    if [[ -d "${target}" ]]; then
+        log "Found text encoder at ${target}"
+        return
+    fi
+    if [[ -d "${TEXT_ENCODER_DIR}" ]]; then
+        mkdir -p "$(dirname "${target}")"
+        ln -s "${TEXT_ENCODER_DIR}" "${target}"
+        log "Linked text encoder from ${TEXT_ENCODER_DIR} to ${target}"
+        return
+    fi
+    log "ERROR: text encoder directory not found at ${TEXT_ENCODER_DIR}"
+    exit 1
 }
 
 maybe_install_deps
