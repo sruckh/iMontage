@@ -127,12 +127,22 @@ def main(args):
         height, width = item[2]
         image_save_paths = []
         
-        num_output = int(prompt[14]) # SYSTEM PROMPT Hard Encoded
+        import re
+        match = re.search(r"Please output (\d+) images", prompt)
+        if match:
+            num_output = int(match.group(1))
+        else:
+            # Fallback or default if pattern not found
+            print(f"Warning: Could not parse output number from prompt '{prompt}'. Defaulting to 1.")
+            num_output = 1
+            
         print(f"output num: {num_output}")
         images = images.split(',') if isinstance(images, str) else images
         images_name = [os.path.basename(image).split('.')[0] for image in images]
+        # Use modulo to cycle through names if we have fewer names than outputs, or just use the first one base name with index
+        base_name = images_name[0]
         for idx in range(num_output):
-            image_save_paths += [os.path.join(args.output_path, f"{images_name[0]}_{idx}.png")]
+            image_save_paths += [os.path.join(args.output_path, f"{base_name}_{idx}.png")]
 
         img_input = []
         

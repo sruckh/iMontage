@@ -148,6 +148,7 @@ def _run_inference(
 
     env = os.environ.copy()
     env.setdefault("CUDA_VISIBLE_DEVICES", "0")
+    env.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
     try:
         proc = subprocess.run(
