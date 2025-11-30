@@ -25,6 +25,12 @@ IMONTAGE_DIR="${IMONTAGE_DIR:-${CKPTS_ROOT}/iMontage_ckpts}"
 LLAVA_DIR="${LLAVA_DIR:-${CKPTS_ROOT}/llava-llama-3-8b-v1_1-transformers}"
 TEXT_ENCODER_DIR="${TEXT_ENCODER_DIR:-${HYVIDEO_DIR}/text_encoder}"
 TEXT_ENCODER_2_DIR="${TEXT_ENCODER_2_DIR:-${HYVIDEO_DIR}/text_encoder_2}"
+IMONTAGE_WEIGHT_PATH="${IMONTAGE_WEIGHT_PATH:-${IMONTAGE_DIR}/diffusion_pytorch_model.safetensors}"
+HYVIDEO_MARKER="${HYVIDEO_MARKER:-${HYVIDEO_DIR}/.download_complete}"
+LLAVA_MARKER="${LLAVA_MARKER:-${LLAVA_DIR}/.download_complete}"
+TEXT_ENCODER_MARKER="${TEXT_ENCODER_MARKER:-${TEXT_ENCODER_DIR}/.processed}"
+TEXT_ENCODER_2_MARKER="${TEXT_ENCODER_2_MARKER:-${TEXT_ENCODER_2_DIR}/.download_complete}"
+IMONTAGE_MARKER="${IMONTAGE_MARKER:-${IMONTAGE_DIR}/.download_complete}"
 
 log() {
     echo "[runpod-bootstrap] $*"
@@ -114,15 +120,33 @@ download_if_missing() {
     local model="$2"
     local target="$3"
     local hf_cmd="$4"
-    if dir_has_content "${target}"; then
-        log "Found ${label} at ${target}; skipping download."
+    local required_file="$5" # optional file to verify presence
+    local marker_file="$6"    # optional marker to note success
+
+    if [[ -n "${marker_file}" && -f "${marker_file}" ]]; then
+        log "Found ${label} marker at ${marker_file}; skipping download."
         return
     fi
+    if [[ -n "${required_file}" && -f "${required_file}" ]]; then
+        log "Found ${label} required file at ${required_file}; skipping download."
+        return
+    fi
+
     log "Downloading ${label} (${model}) to ${target}"
     mkdir -p "${target}"
     if ! "${hf_cmd}" download "${model}" --local-dir "${target}"; then
-        log "WARNING: failed to download ${label} (${model})"
+        log "ERROR: failed to download ${label} (${model})"
+        exit 1
     fi
+
+    if [[ -n "${required_file}" && ! -f "${required_file}" ]]; then
+        log "ERROR: download completed but required file missing: ${required_file}"
+        exit 1
+    fi
+    if [[ -n "${marker_file}" ]]; then
+        touch "${marker_file}"
+    fi
+    log "Downloaded ${label} to ${target}"
 }
 
 maybe_download_models() {
@@ -135,16 +159,20 @@ maybe_download_models() {
     export HF_TOKEN="${HF_TOKEN:-}"
     mkdir -p "${HYVIDEO_DIR}" "${IMONTAGE_DIR}" "${TEXT_ENCODER_DIR}" "${TEXT_ENCODER_2_DIR}"
 
-    download_if_missing "HunyuanVideo-I2V" "tencent/HunyuanVideo-I2V" "${HYVIDEO_DIR}" "${HF_CMD}"
-    download_if_missing "LLaVA tokenizer" "xtuner/llava-llama-3-8b-v1_1-transformers" "${LLAVA_DIR}" "${HF_CMD}"
+    download_if_missing "HunyuanVideo-I2V" "tencent/HunyuanVideo-I2V" "${HYVIDEO_DIR}" "${HF_CMD}" "" "${HYVIDEO_MARKER}"
+    download_if_missing "LLaVA tokenizer" "xtuner/llava-llama-3-8b-v1_1-transformers" "${LLAVA_DIR}" "${HF_CMD}" "" "${LLAVA_MARKER}"
     if dir_has_content "${LLAVA_DIR}" && ! dir_has_content "${TEXT_ENCODER_DIR}"; then
         log "Running tokenizer preprocess to ${TEXT_ENCODER_DIR}"
-        "${PYTHON_BIN}" fastvideo/models/hyvideo/utils/preprocess_text_encoder_tokenizer_utils.py \
+        if ! "${PYTHON_BIN}" fastvideo/models/hyvideo/utils/preprocess_text_encoder_tokenizer_utils.py \
             --input_dir "${LLAVA_DIR}" \
-            --output_dir "${TEXT_ENCODER_DIR}" || log "WARNING: tokenizer preprocess failed"
+            --output_dir "${TEXT_ENCODER_DIR}"; then
+            log "ERROR: tokenizer preprocess failed"
+            exit 1
+        fi
+        touch "${TEXT_ENCODER_MARKER}"
     fi
-    download_if_missing "CLIP text_encoder_2" "openai/clip-vit-large-patch14" "${TEXT_ENCODER_2_DIR}" "${HF_CMD}"
-    download_if_missing "iMontage weights" "Kr1sJ/iMontage" "${IMONTAGE_DIR}" "${HF_CMD}"
+    download_if_missing "CLIP text_encoder_2" "openai/clip-vit-large-patch14" "${TEXT_ENCODER_2_DIR}" "${HF_CMD}" "" "${TEXT_ENCODER_2_MARKER}"
+    download_if_missing "iMontage weights" "Kr1sJ/iMontage" "${IMONTAGE_DIR}" "${HF_CMD}" "${IMONTAGE_WEIGHT_PATH}" "${IMONTAGE_MARKER}"
 }
 
 maybe_install_deps
