@@ -6,6 +6,7 @@ set -euo pipefail
 
 PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
+export PIP_DISABLE_PIP_VERSION_CHECK="${PIP_DISABLE_PIP_VERSION_CHECK:-1}"
 REPO_URL="${REPO_URL:-https://github.com/sruckh/iMontage.git}"
 REPO_DIR="${REPO_DIR:-/workspace/iMontage}"
 MARKER_FILE="${MARKER_FILE:-/workspace/.imontage_bootstrap_done}"
@@ -46,8 +47,7 @@ maybe_install_deps() {
         return
     fi
 
-    log "Upgrading pip"
-    "${PYTHON_BIN}" -m pip install --upgrade pip --break-system-packages
+    log "Skipping pip upgrade (using system pip to avoid Debian uninstall errors)"
 
     log "Installing PyTorch ${TORCH_VERSION} (cu128) and friends from ${TORCH_INDEX_URL}"
     "${PYTHON_BIN}" -m pip install --break-system-packages \
