@@ -4,7 +4,7 @@
 # then execs the provided command (default: Gradio app).
 set -euo pipefail
 
-PYTHON_BIN="${PYTHON_BIN:-python3}"
+PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 REPO_URL="${REPO_URL:-https://github.com/sruckh/iMontage.git}"
 REPO_DIR="${REPO_DIR:-/workspace/iMontage}"
 MARKER_FILE="${MARKER_FILE:-/workspace/.imontage_bootstrap_done}"
@@ -27,7 +27,7 @@ log() {
 }
 
 if [[ ! -x "$(command -v "${PYTHON_BIN}")" ]]; then
-    log "ERROR: ${PYTHON_BIN} not found; ensure python3 is installed."
+    log "ERROR: ${PYTHON_BIN} not found; ensure python3.12 is installed."
     exit 1
 fi
 
