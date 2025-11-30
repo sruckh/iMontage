@@ -5,6 +5,7 @@
 set -euo pipefail
 
 PYTHON_BIN="${PYTHON_BIN:-python3.12}"
+export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
 REPO_URL="${REPO_URL:-https://github.com/sruckh/iMontage.git}"
 REPO_DIR="${REPO_DIR:-/workspace/iMontage}"
 MARKER_FILE="${MARKER_FILE:-/workspace/.imontage_bootstrap_done}"
@@ -46,10 +47,10 @@ maybe_install_deps() {
     fi
 
     log "Upgrading pip"
-    "${PYTHON_BIN}" -m pip install --upgrade pip
+    "${PYTHON_BIN}" -m pip install --upgrade pip --break-system-packages
 
     log "Installing PyTorch ${TORCH_VERSION} (cu128) and friends from ${TORCH_INDEX_URL}"
-    "${PYTHON_BIN}" -m pip install \
+    "${PYTHON_BIN}" -m pip install --break-system-packages \
         torch=="${TORCH_VERSION}" \
         torchvision=="${TORCHVISION_VERSION}" \
         torchaudio=="${TORCHAUDIO_VERSION}" \
@@ -57,7 +58,7 @@ maybe_install_deps() {
 
     if [[ "${INSTALL_FLASH_ATTN}" == "1" ]]; then
         log "Installing flash-attn ${FLASH_ATTN_VERSION} (required)."
-        if ! "${PYTHON_BIN}" -m pip install "flash-attn==${FLASH_ATTN_VERSION}" --no-build-isolation; then
+        if ! "${PYTHON_BIN}" -m pip install "flash-attn==${FLASH_ATTN_VERSION}" --no-build-isolation --break-system-packages; then
             log "ERROR: flash-attn install failed. This image uses the CUDA devel base for build tooling; if it still fails, check CUDA compatibility or adjust FLASH_ATTN_VERSION."
             exit 1
         fi
@@ -66,7 +67,7 @@ maybe_install_deps() {
     fi
 
     log "Installing iMontage Python package and dependencies (-e .)"
-    "${PYTHON_BIN}" -m pip install -e .
+    "${PYTHON_BIN}" -m pip install -e . --break-system-packages
 
     log "Bootstrap complete."
     touch "${MARKER_FILE}"
@@ -82,7 +83,7 @@ ensure_hf_cli() {
         return
     fi
     log "Installing huggingface_hub[cli] to obtain huggingface-cli"
-    "${PYTHON_BIN}" -m pip install --upgrade "huggingface_hub[cli]"
+    "${PYTHON_BIN}" -m pip install --upgrade "huggingface_hub[cli]" --break-system-packages
     if command -v huggingface-cli >/dev/null 2>&1; then
         echo "huggingface-cli"
         return
