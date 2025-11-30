@@ -177,6 +177,7 @@ maybe_download_models() {
 
     ensure_vae_link
     ensure_text_encoder_link
+    ensure_text_encoder_2_link
 }
 
 ensure_vae_link() {
@@ -209,6 +210,22 @@ ensure_text_encoder_link() {
         return
     fi
     log "ERROR: text encoder directory not found at ${LLAVA_DIR}"
+    exit 1
+}
+
+ensure_text_encoder_2_link() {
+    local target="${REPO_DIR}/data/hunyuan/text_encoder_2"
+    if [[ -d "${target}" ]]; then
+        log "Found text encoder 2 at ${target}"
+        return
+    fi
+    if [[ -d "${TEXT_ENCODER_2_DIR}" ]]; then
+        mkdir -p "$(dirname "${target}")"
+        ln -s "${TEXT_ENCODER_2_DIR}" "${target}"
+        log "Linked text encoder 2 from ${TEXT_ENCODER_2_DIR} to ${target}"
+        return
+    fi
+    log "ERROR: text encoder 2 directory not found at ${TEXT_ENCODER_2_DIR}"
     exit 1
 }
 
