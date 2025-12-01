@@ -15,6 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY scripts/runpod_bootstrap.sh /usr/local/bin/runpod_bootstrap.sh
 RUN chmod +x /usr/local/bin/runpod_bootstrap.sh
 
+# Install PyTorch and Flash Attention (Required for st_attn build)
+RUN pip3 install --break-system-packages \
+    torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    && pip3 install --break-system-packages \
+    https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
+
 # Install st_attn for acceleration
 RUN git clone https://github.com/hao-ai-lab/FastVideo.git /tmp/FastVideo \
     && cd /tmp/FastVideo/csrc/sliding_tile_attention \
