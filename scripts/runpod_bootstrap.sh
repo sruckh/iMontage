@@ -258,10 +258,15 @@ ensure_text_encoder_2_link() {
 
 maybe_install_deps
 
-# Ensure st_attn is installed (check every boot to be safe, as it's critical for perf)
 install_st_attn
 
 maybe_download_models
+
+if "${PYTHON_BIN}" -c "import st_attn" >/dev/null 2>&1; then
+    log "SUCCESS: st_attn is successfully imported and available."
+else
+    log "WARNING: st_attn could NOT be imported. Performance may be impacted."
+fi
 
 export PYTHONPATH="${REPO_DIR}:${PYTHONPATH:-}"
 export PATH="${REPO_DIR}/scripts:${PATH}"
