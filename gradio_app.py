@@ -140,6 +140,8 @@ def _run_inference(
         DEFAULT_MODEL_ROOT,
         "--dit-weight",
         DEFAULT_DIT_WEIGHT,
+        "--vae-tiling",
+        "--use-cpu-offload",
     ]
     if flow_reverse:
         cmd.append("--flow-reverse")

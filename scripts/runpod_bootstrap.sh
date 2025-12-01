@@ -85,8 +85,6 @@ maybe_install_deps() {
     log "Installing iMontage Python package and dependencies (-e .)"
     "${PYTHON_BIN}" -m pip install -e . --break-system-packages
 
-    install_st_attn
-
     log "Bootstrap complete."
     touch "${MARKER_FILE}"
 }
@@ -259,6 +257,10 @@ ensure_text_encoder_2_link() {
 }
 
 maybe_install_deps
+
+# Ensure st_attn is installed (check every boot to be safe, as it's critical for perf)
+install_st_attn
+
 maybe_download_models
 
 export PYTHONPATH="${REPO_DIR}:${PYTHONPATH:-}"
