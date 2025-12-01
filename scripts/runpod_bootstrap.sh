@@ -89,32 +89,6 @@ maybe_install_deps() {
     touch "${MARKER_FILE}"
 }
 
-install_st_attn() {
-    if "${PYTHON_BIN}" -c "import st_attn" >/dev/null 2>&1; then
-        log "st_attn already installed."
-        return
-    fi
-
-    log "Installing st_attn (Sliding Tile Attention)..."
-    # Clone FastVideo temporarily to build the extension
-    local tmp_dir
-    tmp_dir=$(mktemp -d)
-    
-    log "Cloning FastVideo repo to ${tmp_dir}..."
-    git clone https://github.com/hao-ai-lab/FastVideo.git "${tmp_dir}/FastVideo"
-    
-    cd "${tmp_dir}/FastVideo/csrc/sliding_tile_attention"
-    log "Building st_attn..."
-    if "${PYTHON_BIN}" -m pip install . --break-system-packages; then
-        log "Successfully installed st_attn."
-    else
-        log "WARNING: Failed to install st_attn. Inference will be slower."
-    fi
-    
-    # Cleanup
-    cd "${REPO_DIR}"
-    rm -rf "${tmp_dir}"
-}
 
 ensure_hf_cli() {
     if command -v hf >/dev/null 2>&1; then
@@ -256,18 +230,17 @@ ensure_text_encoder_2_link() {
     exit 1
 }
 
-maybe_install_deps
-
-install_st_attn
-
-maybe_download_models
-
-if "${PYTHON_BIN}" -c "import st_attn" >/dev/null 2>&1; then
-    log "SUCCESS: st_attn is successfully imported and available."
-else
-    log "WARNING: st_attn could NOT be imported. Performance may be impacted."
-fi
-
+ maybe_install_deps
+ 
+ install_st_attn
+ 
+ maybe_download_models
+ 
+ if "${PYTHON_BIN}" -c "import st_attn" >/dev/null 2>&1; then
+     log "SUCCESS: st_attn is successfully imported and available."
+ else
+     log "WARNING: st_attn could NOT be imported. Performance may be impacted."
+ fi
 export PYTHONPATH="${REPO_DIR}:${PYTHONPATH:-}"
 export PATH="${REPO_DIR}/scripts:${PATH}"
 
