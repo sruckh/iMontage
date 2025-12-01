@@ -15,6 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY scripts/runpod_bootstrap.sh /usr/local/bin/runpod_bootstrap.sh
 RUN chmod +x /usr/local/bin/runpod_bootstrap.sh
 
+# Install st_attn for acceleration
+RUN git clone https://github.com/hao-ai-lab/FastVideo.git /tmp/FastVideo \
+    && cd /tmp/FastVideo/csrc/sliding_tile_attention \
+    && pip3 install . --break-system-packages \
+    && rm -rf /tmp/FastVideo
+
 WORKDIR /workspace
 
 ENTRYPOINT ["/usr/local/bin/runpod_bootstrap.sh"]

@@ -5,7 +5,7 @@ from einops import rearrange
 try:
     from st_attn import sliding_tile_attention
 except ImportError:
-    print("Could not load Sliding Tile Attention.")
+    print("Could not load Sliding Tile Attention. This is expected if st_attn is not installed; falling back to flash_attn_no_pad.")
     sliding_tile_attention = None
 
 from fastvideo.models.flash_attn_no_pad import flash_attn_no_pad
