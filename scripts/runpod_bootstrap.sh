@@ -82,8 +82,8 @@ maybe_install_deps() {
         log "WARNING: Skipping flash-attn install (INSTALL_FLASH_ATTN=0) even though it is required by README."
     fi
 
-    log "Installing fastvideo (upstream) to ensure st_attn is available..."
-    "${PYTHON_BIN}" -m pip install fastvideo --break-system-packages
+    log "Installing st_attn from PyPI..."
+    "${PYTHON_BIN}" -m pip install st_attn --break-system-packages
 
     log "Installing iMontage Python package and dependencies (-e .)"
     "${PYTHON_BIN}" -m pip install -e . --break-system-packages

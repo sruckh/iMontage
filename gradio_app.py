@@ -202,7 +202,56 @@ def build_demo():
             lines=3,
         )
 
-        images = gr.Files(label="Reference images (1-4)", file_types=["image"], type="filepath")
+        # Dynamic Image Inputs
+        with gr.Group():
+            with gr.Row():
+                control_img = gr.Image(label="Control Image (Depth/Pose/Canny)", type="filepath", visible=False, height=300)
+                img1 = gr.Image(label="Image 1", type="filepath", visible=True, height=300)
+            with gr.Row():
+                img2 = gr.Image(label="Image 2", type="filepath", visible=False, height=300)
+                img3 = gr.Image(label="Image 3", type="filepath", visible=False, height=300)
+                img4 = gr.Image(label="Image 4", type="filepath", visible=False, height=300)
+
+        # UI Update Logic
+        def update_ui(task):
+            # Defaults
+            p_up = gr.update(label="Prompt", placeholder="Describe what to generate or edit.")
+            c_up = gr.update(visible=False)
+            i1_up = gr.update(visible=True, label="Image 1")
+            i2_up = gr.update(visible=False, label="Image 2")
+            i3_up = gr.update(visible=False, label="Image 3")
+            i4_up = gr.update(visible=False, label="Image 4")
+
+            if task == "image_editing":
+                pass # Default is fine
+            elif task == "cref":
+                i2_up = gr.update(visible=True)
+                i3_up = gr.update(visible=True)
+                i4_up = gr.update(visible=True)
+            elif task == "conditioned_cref":
+                p_up = gr.update(label="Signal Type", placeholder="e.g., depth, pose, canny")
+                c_up = gr.update(visible=True)
+                i2_up = gr.update(visible=True)
+                i3_up = gr.update(visible=True)
+                i4_up = gr.update(visible=True)
+            elif task == "sref":
+                i1_up = gr.update(label="Content Image")
+                i2_up = gr.update(visible=True, label="Style Image")
+            elif task == "multiview":
+                pass
+            elif task == "storyboard":
+                p_up = gr.update(placeholder="Format: 'Style: Instruction' (e.g., 'Comic: A hero jumps')")
+                i2_up = gr.update(visible=True)
+                i3_up = gr.update(visible=True)
+                i4_up = gr.update(visible=True)
+            
+            return p_up, c_up, i1_up, i2_up, i3_up, i4_up
+
+        task_type.change(
+            fn=update_ui,
+            inputs=[task_type],
+            outputs=[prompt_text, control_img, img1, img2, img3, img4]
+        )
 
         with gr.Row():
             height = gr.Slider(label="Height", minimum=256, maximum=1280, value=1024, step=16)
@@ -224,21 +273,37 @@ def build_demo():
         log_output = gr.Textbox(label="Logs", lines=8)
         gallery = gr.Gallery(label="Generated images", preview=True)
 
+        def run_inference_wrapper(
+            task, prompt, ctrl, i1, i2, i3, i4,
+            h, w, out_num, steps, guide, embed, shift, rev, sd
+        ):
+            # Gather images based on task
+            imgs = []
+            if task == "conditioned_cref":
+                if ctrl: imgs.append(ctrl)
+                if i1: imgs.append(i1)
+                if i2: imgs.append(i2)
+                if i3: imgs.append(i3)
+                if i4: imgs.append(i4)
+            else:
+                # For others, just collect i1..i4 in order
+                if i1: imgs.append(i1)
+                if i2: imgs.append(i2)
+                if i3: imgs.append(i3)
+                if i4: imgs.append(i4)
+            
+            return _run_inference(
+                task, prompt, imgs,
+                h, w, out_num, steps, guide, embed, shift, rev, sd
+            )
+
         run_button.click(
-            fn=_run_inference,
+            fn=run_inference_wrapper,
             inputs=[
-                task_type,
-                prompt_text,
-                images,
-                height,
-                width,
-                output_num,
-                num_inference_steps,
-                guidance_scale,
-                embedded_cfg_scale,
-                flow_shift,
-                flow_reverse,
-                seed,
+                task_type, prompt_text, control_img, img1, img2, img3, img4,
+                height, width, output_num,
+                num_inference_steps, guidance_scale, embedded_cfg_scale,
+                flow_shift, flow_reverse, seed,
             ],
             outputs=[log_output, gallery],
         )
